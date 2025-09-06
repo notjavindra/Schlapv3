@@ -11,7 +11,7 @@ local function debugNotify(title, content, duration)
 end
 
 -- Load WindUI
-local Version = "1.6.31" -- Try 1.7.0 if 1.6.31 fails
+local Version = "1.6.31" -- Try "1.7.0" if 1.6.31 fails
 local WindUI
 local success, result = pcall(function()
     return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
@@ -50,6 +50,77 @@ else
 end
 
 local Workspace = game:GetService("Workspace")
+
+-- Create fallback Roblox UI to test rendering
+local function createFallbackUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.Name = "MerquryHubFallback"
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 200, 0, 50)
+    frame.Position = UDim2.new(0.5, -100, 0.1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    frame.BackgroundTransparency = 0.5
+    frame.Parent = screenGui
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.Text = "Merqury Hub Fallback UI"
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextScaled = true
+    textLabel.Parent = frame
+    
+    debugNotify("Fallback UI", "Created fallback Roblox UI to test rendering")
+end
+
+-- Create Window with WindUI
+local Window
+local success, err = pcall(function()
+    Window = WindUI:CreateWindow({
+        Title = "Schlap | Merqury Hub",
+        Icon = "rbxassetid://4483345998",
+        Author = "Merqury Hub",
+        Folder = "SchlapConfig",
+        Size = UDim2.fromOffset(580, 460),
+        KeySystem = {
+            Key = "MERQURYHUB_1.7",
+            Note = "Enter the key to access Merqury Hub for Schlap",
+            URL = "https://discord.gg/merquryhub", -- Replace with actual URL
+            SaveKey = true
+        },
+        Transparent = true,
+        Theme = "Dark",
+        SideBarWidth = 170
+    })
+end)
+
+if not success then
+    debugNotify("Window Creation Error", "Failed to create WindUI window: " .. tostring(err))
+    createFallbackUI()
+    return
+end
+
+debugNotify("Window Created", "WindUI window created successfully")
+
+-- Test fallback UI to confirm rendering
+createFallbackUI()
+
+-- Notification helper function (using WindUI if available)
+local function showNotification(title, content, duration)
+    local success, _ = pcall(function()
+        WindUI:Notify({
+            Title = title,
+            Content = content,
+            Duration = duration or 3
+        })
+    end)
+    if not success then
+        debugNotify(title, content, duration)
+    end
+end
+
 -- Variables
 local WalkSpeedValue, JumpPowerValue = 16, 50
 local SpeedEnabled = false
@@ -88,47 +159,6 @@ local SchlapTools = {
     "Godly",
     "Midas"
 }
--- Create Window with WindUI
-local Window
-local success, err = pcall(function()
-    Window = WindUI:CreateWindow({
-        Title = "Schlap | Merqury Hub",
-        Icon = "rbxassetid://4483345998",
-        Author = "Merqury Hub",
-        Folder = "SchlapConfig",
-        Size = UDim2.fromOffset(580, 460),
-        KeySystem = {
-            Key = "MERQURYHUB_1.7",
-            Note = "Enter the key to access Merqury Hub for Schlap",
-            URL = "https://discord.gg/merquryhub", -- Replace with actual URL
-            SaveKey = true
-        },
-        Transparent = true,
-        Theme = "Dark",
-        SideBarWidth = 170
-    })
-end)
-
-if not success then
-    debugNotify("Window Creation Error", "Failed to create WindUI window: " .. tostring(err))
-    return
-end
-
-debugNotify("Window Created", "WindUI window created successfully")
-
--- Notification helper function (using WindUI if available)
-local function showNotification(title, content, duration)
-    local success, _ = pcall(function()
-        WindUI:Notify({
-            Title = title,
-            Content = content,
-            Duration = duration or 3
-        })
-    end)
-    if not success then
-        debugNotify(title, content, duration)
-    end
-end
 
 -- === MAIN TAB ===
 local mainTab = Window:Tab({
@@ -447,7 +477,7 @@ RunService.RenderStepped:Connect(function()
                     if distance <= 10 then
                         local tool, toolName = findSchlapTool()
                         if tool and Humanoid and Humanoid.Health > 0 and Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
-                            if tool.Parent ~= Character then
+                            if tool.Parent != Character then
                                 Humanoid:EquipTool(tool)
                                 task.wait(0.3)
                             end
@@ -477,7 +507,7 @@ RunService.RenderStepped:Connect(function()
            
             local players = {}
             for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if player != LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     table.insert(players, player)
                 end
             end
@@ -497,7 +527,7 @@ RunService.RenderStepped:Connect(function()
                     -- Try to slap with any available tool
                     local tool, toolName = findSchlapTool()
                     if tool and Humanoid and Humanoid.Health > 0 then
-                        if tool.Parent ~= Character then
+                        if tool.Parent != Character then
                             Humanoid:EquipTool(tool)
                             task.wait(0.1)
                         end
@@ -510,7 +540,7 @@ RunService.RenderStepped:Connect(function()
                             end
                         end
                     else
-                        showToolWarning()
+                        showNotification("⚠️ No Schlap Tool Found", "Please equip one of these tools: " .. table.concat(SchlapTools, ", "), 6)
                     end
                    
                     -- Move to next target
@@ -536,7 +566,7 @@ RunService.RenderStepped:Connect(function()
     -- Update ESP for new players
     if PlayersESPEnabled then
         for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if player != LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 if not ESPConnections[player.Name] or not ESPConnections[player.Name].Players then
                     createPlayerESP(player)
                 end
