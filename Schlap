@@ -138,7 +138,7 @@ local mainTab = Window:Tab({
 -- Auto Slap
 local autoSlapToggle = mainTab:Toggle({
     Title = "Auto Slap",
-    Desc = "Automatically slaps nearby players",
+    Description = "Automatically slaps nearby players",
     Default = false,
     Callback = function(state)
         AutoSlapEnabled = state
@@ -152,7 +152,7 @@ local autoSlapToggle = mainTab:Toggle({
 -- Auto Slap Aura (Not Recommended)
 local autoSlapAuraToggle = mainTab:Toggle({
     Title = "Auto Slap Aura (Not Recommended)",
-    Desc = "Teleports to players and slaps them",
+    Description = "Teleports to players and slaps them",
     Default = false,
     Callback = function(state)
         AutoSlapAuraEnabled = state
@@ -167,7 +167,7 @@ local autoSlapAuraToggle = mainTab:Toggle({
 -- AntiVoid Toggle
 local antiVoidToggle = mainTab:Toggle({
     Title = "Antivoid",
-    Desc = "Prevents falling into the void",
+    Description = "Prevents falling into the void",
     Default = false,
     Callback = function(state)
         AntiVoidEnabled = state
@@ -211,7 +211,7 @@ local antiVoidToggle = mainTab:Toggle({
 -- AntiRagdoll Toggle
 local antiRagdollToggle = mainTab:Toggle({
     Title = "AntiRagdoll",
-    Desc = "Prevents ragdoll physics",
+    Description = "Prevents ragdoll physics",
     Default = false,
     Callback = function(state)
         AntiRagdollEnabled = state
@@ -287,7 +287,7 @@ end
 -- Players ESP Toggle
 local playersESPToggle = visualTab:Toggle({
     Title = "Players ESP (Blue)",
-    Desc = "Shows ESP for all players",
+    Description = "Shows ESP for all players",
     Default = false,
     Callback = function(state)
         PlayersESPEnabled = state
@@ -309,7 +309,7 @@ local playersESPToggle = visualTab:Toggle({
 -- Users ESP Toggle (NPCs/Bots)
 local usersESPToggle = visualTab:Toggle({
     Title = "Users ESP (Red)",
-    Desc = "Shows ESP for NPCs/Bots",
+    Description = "Shows ESP for NPCs/Bots",
     Default = false,
     Callback = function(state)
         UsersESPEnabled = state
@@ -332,7 +332,7 @@ local miscTab = Window:Tab({
 -- WalkSpeed Slider
 local walkSpeedSlider = miscTab:Slider({
     Title = "WalkSpeed",
-    Desc = "Adjust your walking speed",
+    Description = "Adjust your walking speed",
     Default = 16,
     Min = 16,
     Max = 200,
@@ -346,7 +346,7 @@ local walkSpeedSlider = miscTab:Slider({
 -- JumpPower Slider
 local jumpPowerSlider = miscTab:Slider({
     Title = "JumpPower",
-    Desc = "Adjust your jump power",
+    Description = "Adjust your jump power",
     Default = 50,
     Min = 50,
     Max = 200,
@@ -360,7 +360,7 @@ local jumpPowerSlider = miscTab:Slider({
 -- Rejoin Button
 local rejoinButton = miscTab:Button({
     Title = "Rejoin",
-    Desc = "Rejoin the current server",
+    Description = "Rejoin the current server",
     Callback = function()
         TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
         showNotification("Rejoin", "Attempting to rejoin the server...")
@@ -369,7 +369,7 @@ local rejoinButton = miscTab:Button({
 -- Server Hop Button
 local serverHopButton = miscTab:Button({
     Title = "Server Hop",
-    Desc = "Join a different server",
+    Description = "Join a different server",
     Callback = function()
         local Servers = {}
         local Success, Response = pcall(function()
@@ -396,7 +396,7 @@ local serverHopButton = miscTab:Button({
 -- Spin Bot Toggle
 local spinBotToggle = miscTab:Toggle({
     Title = "Spin Bot",
-    Desc = "Makes your character spin continuously",
+    Description = "Makes your character spin continuously",
     Default = false,
     Callback = function(state)
         SpinBotEnabled = state
