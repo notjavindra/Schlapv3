@@ -1,14 +1,54 @@
+-- Debug function to show notifications
+local function debugNotify(title, content, duration)
+    if game:GetService("UserInputService") then
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = content,
+            Duration = duration or 5
+        })
+    end
+    print("[DEBUG] " .. title .. ": " .. content)
+end
+
 -- Load WindUI
-local Version = "1.6.31"
-local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
+local Version = "1.6.31" -- Try 1.7.0 if 1.6.31 fails
+local WindUI
+local success, result = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
+end)
+
+if not success or not result then
+    debugNotify("WindUI Load Error", "Failed to load WindUI: " .. tostring(result))
+    return
+end
+
+WindUI = result
+debugNotify("WindUI Loaded", "WindUI version " .. Version .. " loaded successfully")
+
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
+local Character = LocalPlayer.Character
+local Humanoid
+
+-- Wait for character with timeout
+local startTime = tick()
+local timeout = 10 -- seconds
+while not Character and tick() - startTime < timeout do
+    Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+if Character then
+    Humanoid = Character:WaitForChild("Humanoid", 5)
+    debugNotify("Character Loaded", "Character and Humanoid initialized")
+else
+    debugNotify("Character Load Error", "Failed to load character within " .. timeout .. " seconds")
+    return
+end
+
 local Workspace = game:GetService("Workspace")
 -- Variables
 local WalkSpeedValue, JumpPowerValue = 16, 50
@@ -49,30 +89,47 @@ local SchlapTools = {
     "Midas"
 }
 -- Create Window with WindUI
-local Window = WindUI:CreateWindow({
-    Title = "Schlap | Merqury Hub",
-    Icon = "rbxassetid://4483345998",
-    Author = "Merqury Hub",
-    Folder = "SchlapConfig",
-    Size = UDim2.fromOffset(580, 460),
-    KeySystem = {
-        Key = "MERQURYHUB_1.7",
-        Note = "Enter the key to access Merqury Hub for Schlap",
-        URL = "https://discord.gg/merquryhub", -- Replace with actual URL
-        SaveKey = true
-    },
-    Transparent = true,
-    Theme = "Dark",
-    SideBarWidth = 170
-})
--- Notification helper function
-local function showNotification(title, content, duration)
-    WindUI:Notify({
-        Title = title,
-        Content = content,
-        Duration = duration or 3
+local Window
+local success, err = pcall(function()
+    Window = WindUI:CreateWindow({
+        Title = "Schlap | Merqury Hub",
+        Icon = "rbxassetid://4483345998",
+        Author = "Merqury Hub",
+        Folder = "SchlapConfig",
+        Size = UDim2.fromOffset(580, 460),
+        KeySystem = {
+            Key = "MERQURYHUB_1.7",
+            Note = "Enter the key to access Merqury Hub for Schlap",
+            URL = "https://discord.gg/merquryhub", -- Replace with actual URL
+            SaveKey = true
+        },
+        Transparent = true,
+        Theme = "Dark",
+        SideBarWidth = 170
     })
+end)
+
+if not success then
+    debugNotify("Window Creation Error", "Failed to create WindUI window: " .. tostring(err))
+    return
 end
+
+debugNotify("Window Created", "WindUI window created successfully")
+
+-- Notification helper function (using WindUI if available)
+local function showNotification(title, content, duration)
+    local success, _ = pcall(function()
+        WindUI:Notify({
+            Title = title,
+            Content = content,
+            Duration = duration or 3
+        })
+    end)
+    if not success then
+        debugNotify(title, content, duration)
+    end
+end
+
 -- === MAIN TAB ===
 local mainTab = Window:Tab({
     Title = "Main",
@@ -392,7 +449,7 @@ RunService.RenderStepped:Connect(function()
                         if tool and Humanoid and Humanoid.Health > 0 and Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
                             if tool.Parent ~= Character then
                                 Humanoid:EquipTool(tool)
-                                task.wait(rows)
+                                task.wait(0.3)
                             end
                             if tool:IsA("Tool") and tool.Parent == Character then
                                 local success, err = pcall(function()
@@ -513,17 +570,25 @@ end)
 -- Handle Character Respawn
 LocalPlayer.CharacterAdded:Connect(function(newCharacter)
     Character = newCharacter
-    Humanoid = newCharacter:WaitForChild("Humanoid")
-    -- Reapply WalkSpeed/JumpPower if enabled
-    if SpeedEnabled then
-        Humanoid.WalkSpeed = WalkSpeedValue
-        Humanoid.JumpPower = JumpPowerValue
-    end
-    -- Reapply AntiRagdoll if enabled
-    if AntiRagdollEnabled then
-        if Humanoid:GetState() == Enum.HumanoidStateType.Physics then
-            Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+    Humanoid = newCharacter:WaitForChild("Humanoid", 5)
+    if Humanoid then
+        debugNotify("Character Respawn", "New character loaded")
+        -- Reapply WalkSpeed/JumpPower if enabled
+        if SpeedEnabled then
+            Humanoid.WalkSpeed = WalkSpeedValue
+            Humanoid.JumpPower = JumpPowerValue
         end
-        Humanoid.PlatformStand = false
+        -- Reapply AntiRagdoll if enabled
+        if AntiRagdollEnabled then
+            if Humanoid:GetState() == Enum.HumanoidStateType.Physics then
+                Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+            end
+            Humanoid.PlatformStand = false
+        end
+    else
+        debugNotify("Character Respawn Error", "Failed to load Humanoid")
     end
 end)
+
+-- Debug: Confirm script execution
+debugNotify("Script Executed", "Merqury Hub for Schlap fully loaded")
