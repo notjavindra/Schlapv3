@@ -24,7 +24,6 @@ end
 
 WindUI = result
 debugNotify("WindUI Loaded", "WindUI version " .. Version .. " loaded successfully")
-debugNotify("w")
 
 -- Services
 local Players = game:GetService("Players")
